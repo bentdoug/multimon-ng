@@ -116,7 +116,6 @@ extern int flex_disable_timestamp;
 void quit(void);
 
 /* ---------------------------------------------------------------------- */
-
 void _verbprintf(int verb_level, const char *fmt, ...)
 {
 	char time_buf[20];
@@ -129,7 +128,7 @@ void _verbprintf(int verb_level, const char *fmt, ...)
     if (is_startline)
     {
         if (label != NULL)
-            fprintf(stdout, "%s: ", label);
+            fprintf(stdout, "%s: OVer here? ", label);
         
         if (timestamp) {
             if(iso8601)
@@ -152,7 +151,7 @@ void _verbprintf(int verb_level, const char *fmt, ...)
 
         is_startline = false;
     }
-    if (NULL != strchr(fmt,'\n')) /* detect end of line in stream */
+    if (NULL != strchr(fmt,'\n')) /* detect end of line in stream*/ 
         is_startline = true;
 
     vfprintf(stdout, fmt, args);
@@ -160,6 +159,68 @@ void _verbprintf(int verb_level, const char *fmt, ...)
         fflush(stdout);
     va_end(args);
 }
+
+/* ---------------------------------------------------------------------- */
+#define FIFO_PATH "/home/raspi1/Documents/POCSAG_bot/montcoFifo"
+/*
+void _verbprintf(int verb_level, const char *fmt, ...)
+{
+	char time_buf[20];
+
+	if (verb_level > verbose_level)
+		return;
+
+	va_list args;
+	va_start(args, fmt);
+
+	int fifo_fd = open(FIFO_PATH, O_WRONLY | O_NONBLOCK); // Open FIFO
+	
+	if (fifo_fd == -1) {
+		//Error opening FIFO
+		perror("Error opening FIFO");
+		va_end(args);
+		return;
+	}
+
+	if (is_startline) {
+		if (label != NULL)
+			dprintf(fifo_fd, "%s: ", label); //Write to FIFO
+		
+		if (timestamp) {
+			if (iso8601) {
+				struct timespec ts;
+				timespec_get(&ts, TIME_UTC);
+				strftime(time_buf, sizeof(time_buf), "%FT%T", gmtime(&ts.tv_sec));
+				dprintf(fifo_fd, "%s.%06ld: ", time_buf, ts.tv_nsec / 1000);
+			} else {
+				time_t t;
+				struct tm *tm_info;
+				t = time(NULL);
+				tm_info = localtime(&t);
+				strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", tm_info);
+				dprintf(fifo_fd, "%s: ", time_buf);
+			}
+		}
+		is_startline = false;
+	}
+
+	if (NULL != strchr(fmt, '\n')) // detect end of line in stream
+		is_startline = true;
+
+	vfprintf(stdout, fmt, args);
+	vfprintf(fifo_fd, fmt, args);
+
+	// Flush fifo to ensure data is written immediately
+	fsync(fifo_fd);
+
+	if (!dont_flush)
+		fflush(stdout);
+			
+	close(fifo_fd);
+
+	va_end(args);
+}
+*/
 
 /* ---------------------------------------------------------------------- */
 
@@ -838,7 +899,7 @@ intypefound:
         memset(dem_mask, 0xff, sizeof(dem_mask));
     
     if (!quietflg)
-        fprintf(stdout, "Enabled demodulators:");
+        fprintf(stdout, "Enabled demodulators:TESTING");
     for (i = 0; (unsigned int) i < NUMDEMOD; i++)
         if (MASK_ISSET(i)) {
             if (!quietflg)

@@ -67,7 +67,7 @@ static void poc12_demod(struct demod_state *s, buffer_t buffer, int length)
 	for (; length > 0; length -= SUBSAMP, buffer.fbuffer += SUBSAMP) {
 		s->l1.poc12.dcd_shreg <<= 1;
 		s->l1.poc12.dcd_shreg |= ((*buffer.fbuffer) > 0);
-		verbprintf(10, "%c", '0'+(s->l1.poc12.dcd_shreg & 1));
+		verbprintf(10, "TEST%c", '0'+(s->l1.poc12.dcd_shreg & 1));
 		/*
 		 * check if transition
 		 */

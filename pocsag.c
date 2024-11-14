@@ -36,7 +36,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
 /* ---------------------------------------------------------------------- */
 
 //#define CHARSET_LATIN1
@@ -114,6 +118,18 @@ static inline unsigned char even_parity(uint32_t data)
 
 
 /* ---------------------------------------------------------------------- */
+
+#define FIFO_PATH "/home/raspi1/Documents/POCSAG_bot/montcoFifo"
+
+int create_fifo() {
+	if (access(FIFO_PATH, F_OK) == -1) { //if fifo doesnt exist
+		if (mkfifo(FIFO_PATH, 0666) == -1) { //Create fifo with read/write perms
+			perror("Error creating FIFO");
+			return -1;
+		}
+	}
+	return 0; //success
+}
 
 static unsigned int pocsag_syndrome(uint32_t data)
 {
@@ -591,7 +607,7 @@ static void pocsag_printmessage(struct demod_state *s, bool sync)
             if((pocsag_mode == POCSAG_MODE_ALPHA) || ((pocsag_mode == POCSAG_MODE_STANDARD) && (func != 0)) || ((pocsag_mode == POCSAG_MODE_AUTO) && (guess_alpha >= guess_skyper || unsure)))
             {
                 if((s->l2.pocsag.address != -2) || (s->l2.pocsag.function != -2))
-                    verbprintf(0, "%s: Address: %7lu  Function: %1hhi  ",s->dem_par->name,
+                    verbprintf(0, "Printing from here: %s: Address: %7lu  Function: %1hhi  ",s->dem_par->name,
                            s->l2.pocsag.address, s->l2.pocsag.function);
                 else
                     verbprintf(0, "%s: Address:       -  Function: -  ",s->dem_par->name);
@@ -600,20 +616,39 @@ static void pocsag_printmessage(struct demod_state *s, bool sync)
                 verbprintf(0, "Alpha:   %s", alpha_string);
                 if(!sync) verbprintf(2,"<LOST SYNC>");
                 verbprintf(0,"\n");
+
+		//Send the alpha string to FIFO
+		if (create_fifo() == 0) { //only try to write to fifo is creation is success
+		    int fifo_fd = open(FIFO_PATH, O_WRONLY); //Open FIFO in non block write mode
+		    if (fifo_fd == -1) {
+			    perror("Error opening FIFO");
+		    } else {
+			ssize_t bytes_written = write(fifo_fd, alpha_string, strlen(alpha_string));
+			write(fifo_fd, "\n", strlen("\n"));
+
+			if (bytes_written == -1) {
+			    perror("Error writing to FIFO");
+			}
+			close(fifo_fd); //close after writing
+		    }
+		}
             }
 
             if((pocsag_mode == POCSAG_MODE_SKYPER) || ((pocsag_mode == POCSAG_MODE_AUTO) && (guess_skyper >= guess_alpha || unsure))) // Only output SKYPER if we're explicitly asking for it or we're auto guessing! (because it's not part of one of the standards, right?!)
             {
                 if((s->l2.pocsag.address != -2) || (s->l2.pocsag.function != -2))
-                    verbprintf(0, "%s: Address: %7lu  Function: %1hhi  ",s->dem_par->name,
+                    verbprintf(0, "HERE?: %s: Address: %7lu  Function: %1hhi  ",s->dem_par->name,
                            s->l2.pocsag.address, s->l2.pocsag.function);
                 else
-                    verbprintf(0, "%s: Address:       -  Function: -  ",s->dem_par->name);
+                    verbprintf(0, "HUH? %s: Address:       -  Function: -  ",s->dem_par->name);
                 if(pocsag_mode == POCSAG_MODE_AUTO)
                     verbprintf(3, "Certainty: %5i  ", guess_skyper);
                 verbprintf(0, "Skyper:  %s", skyper_string);
                 if(!sync) verbprintf(2,"<LOST SYNC>");
                 verbprintf(0,"\n");
+
+		
+
             }
         }
     }
