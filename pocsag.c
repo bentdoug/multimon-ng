@@ -607,7 +607,7 @@ static void pocsag_printmessage(struct demod_state *s, bool sync)
             if((pocsag_mode == POCSAG_MODE_ALPHA) || ((pocsag_mode == POCSAG_MODE_STANDARD) && (func != 0)) || ((pocsag_mode == POCSAG_MODE_AUTO) && (guess_alpha >= guess_skyper || unsure)))
             {
                 if((s->l2.pocsag.address != -2) || (s->l2.pocsag.function != -2))
-                    verbprintf(0, "Printing from here: %s: Address: %7lu  Function: %1hhi  ",s->dem_par->name,
+                    verbprintf(0, "%s: Address: %7lu  Function: %1hhi  ",s->dem_par->name,
                            s->l2.pocsag.address, s->l2.pocsag.function);
                 else
                     verbprintf(0, "%s: Address:       -  Function: -  ",s->dem_par->name);

@@ -128,7 +128,7 @@ void _verbprintf(int verb_level, const char *fmt, ...)
     if (is_startline)
     {
         if (label != NULL)
-            fprintf(stdout, "%s: OVer here? ", label);
+            fprintf(stdout, "%s: ", label);
         
         if (timestamp) {
             if(iso8601)
