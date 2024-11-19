@@ -1,3 +1,5 @@
+This is a clone of the multimon-ng that will use a FIFO to send received messages to another process.
+
 # multimon-ng
 
 multimon-ng is the successor of multimon. It decodes the following digital transmission modes:
